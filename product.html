@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .product-details img {
+            max-width: 100%;
+            height: auto;
+        }
+        .review-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .star-rating {
+            color: gold;
+        }
+        .star-rating span {
+            font-size: 1.2em;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+        }
+        .back-button {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="product-details" id="productDetails">
+        <!-- Product details will be inserted here -->
+    </div>
+    <div id="productReviews">
+        <!-- Product reviews will be inserted here -->
+    </div>
+
+    <form id="reviewForm">
+        <h2 id="formTitle"></h2>
+        <label for="reviewRating">Rating (1-5):</label>
+        <input type="number" id="reviewRating" min="1" max="5" required>
+        <br>
+        <label for="reviewText">Review:</label>
+        <textarea id="reviewText" rows="4" required></textarea>
+        <br>
+        <span id="errorMessage" class="error-message"></span>
+        <br>
+        <button type="submit" id="submitButton"></button>
+    </form>
+
+    <a href="index.html" class="back-button">Back to Home</a>
+
+    <script>
+        let urlParams = new URLSearchParams(window.location.search);
+        let productIndex = urlParams.get('index');
+        let reviewIndexToEdit = urlParams.get('editReview');
+
+        if (productIndex !== null) {
+            displayProductDetails(productIndex);
+        }
+
+        function displayProductDetails(index) {
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let product = products[index];
+            if (!product) return;
+
+            // Display product details
+            let stars = getStars(calculateAverageRating(product.reviews));
+            document.getElementById('productDetails').innerHTML = `
+                <h1>${product.name}</h1>
+                <img src="${product.image}" alt="Product Image">
+                <p>${product.description}</p>
+                <p>Average Rating: <span class="star-rating">${stars}</span></p>
+            `;
+
+            // Display product reviews
+            let reviewList = document.getElementById('productReviews');
+            reviewList.innerHTML = '';
+
+            product.reviews.forEach((review, reviewIndex) => {
+                if (review.rating && review.text) { // Ensure review is not empty
+                    let reviewItem = `
+                        <div class="review-item" id="review-${reviewIndex}">
+                            <p>Rating: <span class="star-rating">${getStars(review.rating)}</span></p>
+                            <p>${review.text}</p>
+                            <button onclick="editReview(${index}, ${reviewIndex})">Edit</button>
+                            <button onclick="deleteReview(${index}, ${reviewIndex})">Delete</button>
+                        </div>
+                    `;
+                    reviewList.innerHTML += reviewItem;
+                }
+            });
+
+            // Set form title and button text based on edit or add mode
+            document.getElementById('formTitle').textContent = reviewIndexToEdit !== null ? 'Edit Review' : 'Add Review';
+            document.getElementById('submitButton').textContent = reviewIndexToEdit !== null ? 'Update Review' : 'Submit Review';
+
+            // Handle review form submission
+            document.getElementById('reviewForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                handleReviewFormSubmit(productIndex);
+            });
+
+            // Reset review index to edit after form submission
+            reviewIndexToEdit = null;
+            window.history.replaceState(null, null, `?index=${productIndex}`);
+        }
+
+        function handleReviewFormSubmit(productIndex) {
+            let rating = document.getElementById('reviewRating').value;
+            let reviewText = document.getElementById('reviewText').value.trim();
+            let errorMessage = document.getElementById('errorMessage');
+
+            if (rating < 1 || rating > 5 || reviewText === '') {
+                errorMessage.textContent = 'Please provide a valid rating and review text.';
+                return;
+            }
+
+            errorMessage.textContent = ''; // Clear any previous error message
+
+            if (reviewIndexToEdit !== null) {
+                updateReview(productIndex, reviewIndexToEdit);
+            } else {
+                saveReview(productIndex);
+            }
+        }
+
+        function saveReview(productIndex) {
+            let rating = document.getElementById('reviewRating').value;
+            let reviewText = document.getElementById('reviewText').value.trim();
+
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let product = products[productIndex];
+            if (!product) return;
+
+            let review = { rating: parseInt(rating), text: reviewText };
+            product.reviews.push(review);
+            localStorage.setItem('products', JSON.stringify(products));
+            displayProductDetails(productIndex);
+            document.getElementById('reviewForm').reset();
+        }
+
+        function editReview(productIndex, reviewIndex) {
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let product = products[productIndex];
+            if (!product) return;
+
+            let review = product.reviews[reviewIndex];
+            document.getElementById('reviewRating').value = review.rating;
+            document.getElementById('reviewText').value = review.text;
+
+            reviewIndexToEdit = reviewIndex;
+            window.history.replaceState(null, null, `?index=${productIndex}&editReview=${reviewIndex}`);
+        }
+
+        function updateReview(productIndex, reviewIndex) {
+            let rating = document.getElementById('reviewRating').value;
+            let reviewText = document.getElementById('reviewText').value.trim();
+            let errorMessage = document.getElementById('errorMessage');
+
+            if (rating < 1 || rating > 5 || reviewText === '') {
+                errorMessage.textContent = 'Please provide a valid rating and review text.';
+                return;
+            }
+
+            errorMessage.textContent = ''; // Clear any previous error message
+
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let product = products[productIndex];
+            if (!product) return;
+
+            product.reviews[reviewIndex] = { rating: parseInt(rating), text: reviewText };
+            localStorage.setItem('products', JSON.stringify(products));
+            displayProductDetails(productIndex);
+            document.getElementById('reviewForm').reset();
+        }
+
+        function deleteReview(productIndex, reviewIndex) {
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let product = products[productIndex];
+            if (!product) return;
+
+            product.reviews.splice(reviewIndex, 1);
+            localStorage.setItem('products', JSON.stringify(products));
+            displayProductDetails(productIndex);
+        }
+
+        function calculateAverageRating(productReviews) {
+            if (productReviews.length === 0) return 0;
+            let sum = productReviews.reduce((acc, review) => acc + review.rating, 0);
+            return (sum / productReviews.length).toFixed(1);
+        }
+
+        function getStars(rating) {
+            let stars = '';
+            for (let i = 0; i < 5; i++) {
+                stars += i < rating ? '★' : '☆';
+            }
+            return stars;
+        }
+    </script>
+</body>
+</html>

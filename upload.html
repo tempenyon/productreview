@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload New Product</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .form-container {
+            width: 50%;
+            margin: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="file"],
+        .form-group input[type="url"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group input[type="file"] {
+            display: inline-block;
+        }
+        .form-group button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .upload-image-container {
+            margin: 10px 0;
+        }
+        .upload-image-container img {
+            max-width: 200px;
+            height: auto;
+            display: block;
+        }
+        .back-button {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <a href="index.html" class="back-button">Back to Home</a>
+        <h1>Upload New Product</h1>
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" name="productName" required>
+            </div>
+            <div class="form-group">
+                <label for="productDescription">Product Description:</label>
+                <input type="text" id="productDescription" name="productDescription" required>
+            </div>
+            <div class="form-group upload-image-container">
+                <label for="productImage">Upload Image:</label>
+                <input type="file" id="productImageFile" name="productImageFile" accept="image/*">
+                <p>or</p>
+                <input type="url" id="productImageUrl" name="productImageUrl" placeholder="Enter image URL">
+            </div>
+            <button type="submit">Upload Product</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let name = document.getElementById('productName').value;
+            let description = document.getElementById('productDescription').value;
+            let imageFile = document.getElementById('productImageFile').files[0];
+            let imageUrl = document.getElementById('productImageUrl').value;
+
+            if (!name || !description || (!imageFile && !imageUrl)) {
+                alert("Please fill all fields and upload an image.");
+                return;
+            }
+
+            let reader = new FileReader();
+            let image = '';
+
+            if (imageFile) {
+                reader.onload = function(e) {
+                    image = e.target.result;
+                    saveProduct(name, description, image);
+                }
+                reader.readAsDataURL(imageFile);
+            } else if (imageUrl) {
+                image = imageUrl;
+                saveProduct(name, description, image);
+            }
+        });
+
+        function saveProduct(name, description, image) {
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let product = {
+                name: name,
+                description: description,
+                image: image,
+                reviews: []
+            };
+            products.push(product);
+            localStorage.setItem('products', JSON.stringify(products));
+            alert('Product uploaded successfully!');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
