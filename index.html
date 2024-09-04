@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Reviews</title>
+    <title>Product List</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,21 +17,15 @@
             max-width: 100px;
             height: auto;
         }
-        .error-message {
-            color: red;
+        .star-rating {
+            color: gold;
+        }
+        .star-rating span {
             font-size: 1.2em;
-            margin: 10px 0;
         }
-        .search-bar {
-            margin: 20px 0;
-        }
-        .search-bar input {
-            padding: 10px;
-            font-size: 16px;
-        }
-        .upload-button {
-            margin: 20px 0;
+        .back-button {
             display: inline-block;
+            margin: 20px 0;
             padding: 10px 20px;
             background-color: #007BFF;
             color: white;
@@ -39,69 +33,76 @@
             border-radius: 5px;
             font-size: 16px;
         }
-        .upload-button:hover {
+        .back-button:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <h1>Product Reviews</h1>
-
-    <a href="upload.html" class="upload-button">Upload New Product</a>
-
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search for a product...">
-    </div>
-
+    <h1>Product List</h1>
     <div id="productList">
         <!-- Product list will be inserted here -->
     </div>
-
-    <div id="noResults" class="error-message" style="display: none;">
-        No products found.
-    </div>
+    <a href="upload.html" class="back-button">Upload New Product</a>
 
     <script>
-        document.getElementById('searchInput').addEventListener('input', function() {
-            let searchQuery = this.value.toLowerCase();
-            displayProducts(searchQuery);
-        });
+        // Function to initialize local storage with template products
+        function initializeProducts() {
+            let products = [
+                {
+                    name: "Product 1",
+                    description: "Description for product 1.",
+                    image: "https://via.placeholder.com/150",
+                    reviews: [
+                        { rating: 4, text: "Great product!" },
+                        { rating: 5, text: "Excellent value for money." }
+                    ]
+                },
+                {
+                    name: "Product 2",
+                    description: "Description for product 2.",
+                    image: "https://via.placeholder.com/150",
+                    reviews: [
+                        { rating: 3, text: "It's okay, could be better." },
+                        { rating: 2, text: "Not satisfied with the quality." }
+                    ]
+                }
+            ];
 
-        function displayProducts(query = '') {
-            let products = JSON.parse(localStorage.getItem('products')) || [];
-            let productList = document.getElementById('productList');
-            let noResults = document.getElementById('noResults');
-
-            productList.innerHTML = '';
-            let filteredProducts = products.filter(product => 
-                product.name.toLowerCase().includes(query)
-            );
-
-            if (filteredProducts.length === 0) {
-                noResults.style.display = 'block';
-            } else {
-                noResults.style.display = 'none';
-                filteredProducts.forEach((product, index) => {
-                    let productItem = `
-                        <div class="product-item">
-                            <h2>${product.name}</h2>
-                            <img src="${product.image}" alt="Product Image">
-                            <p>${product.description}</p>
-                            <p>Average Rating: ${getStars(calculateAverageRating(product.reviews))}</p>
-                            <a href="product.html?index=${index}">View Details</a>
-                        </div>
-                    `;
-                    productList.innerHTML += productItem;
-                });
-            }
+            localStorage.setItem('products', JSON.stringify(products));
         }
 
+        // Initialize products only if local storage is empty
+        if (!localStorage.getItem('products')) {
+            initializeProducts();
+        }
+
+        // Function to display product list
+        function displayProducts() {
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let productList = document.getElementById('productList');
+            productList.innerHTML = '';
+
+            products.forEach((product, index) => {
+                let averageRating = calculateAverageRating(product.reviews);
+                let stars = getStars(averageRating);
+                let productItem = `<div class="product-item">
+                                     <h3><a href="product.html?index=${index}">${product.name}</a></h3>
+                                     <img src="${product.image}" alt="Product Image">
+                                     <p>Average Rating: ${stars}</p>
+                                   </div>`;
+                productList.innerHTML += productItem;
+            });
+        }
+
+        // Function to calculate average rating
         function calculateAverageRating(productReviews) {
             if (productReviews.length === 0) return 0;
             let sum = productReviews.reduce((acc, review) => acc + review.rating, 0);
             return (sum / productReviews.length).toFixed(1);
         }
 
+        // Function to get star representation of rating
         function getStars(rating) {
             let stars = '';
             for (let i = 0; i < 5; i++) {
@@ -110,8 +111,8 @@
             return stars;
         }
 
-        // Initial load of products
-        displayProducts();
+        // Display product list on initial page load
+        document.addEventListener('DOMContentLoaded', displayProducts);
     </script>
 </body>
 </html>
