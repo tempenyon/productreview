@@ -1,19 +1,23 @@
-// Function to display product list
-function displayProducts() {
-    let products = JSON.parse(localStorage.getItem('products')) || [];
-    let productList = document.getElementById('productList');
-    productList.innerHTML = '';
+document.addEventListener('DOMContentLoaded', displayProducts);
 
-    products.forEach((product, index) => {
-        let averageRating = calculateAverageRating(product.reviews);
-        let stars = getStars(averageRating);
-        let productItem = `<div class="product-item">
-                             <h3><a href="product.html?index=${index}">${product.name}</a></h3>
-                             <img src="${product.image}" alt="Product Image">
-                             <p>Average Rating: ${stars}</p>
-                           </div>`;
-        productList.innerHTML += productItem;
-    });
+function displayProducts() {
+    fetch('products.json')
+        .then(response => response.json())
+        .then(products => {
+            let productList = document.getElementById('productList');
+            productList.innerHTML = '';
+
+            products.forEach(product => {
+                let productItem = `
+                    <div class="product-item">
+                        <h3>${product.name}</h3>
+                        <img src="${product.image}" alt="Product Image">
+                        <p>${product.description}</p>
+                    </div>`;
+                productList.innerHTML += productItem;
+            });
+        })
+        .catch(error => console.error('Error fetching products:', error));
 }
 
 // Function to calculate average rating
