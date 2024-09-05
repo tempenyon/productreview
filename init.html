@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            if (localStorage.getItem('initialized') === 'true') {
+                window.location.href = 'index.html';
+            }
+        };
+    </script>
+</head>
+<body>
+    <h1>Welcome to Our Product Website</h1>
+    <p>To get started, we need to initialize some sample products and reviews.</p>
+    <button class="button" id="initializeButton">Initialize Data</button>
+
+    <script>
+        document.getElementById('initializeButton').addEventListener('click', function() {
+            // Initialize sample data
+            initializeSampleData();
+        });
+
+        function initializeSampleData() {
+            let products = [
+                {
+                    name: "Sample Product 1",
+                    description: "This is a description of Sample Product 1.",
+                    image: "path/to/sample-image1.jpg",
+                    price: 50000,
+                    reviews: [
+                        { rating: 5, text: "Excellent!" },
+                        { rating: 4, text: "Very good!" }
+                    ]
+                },
+                {
+                    name: "Sample Product 2",
+                    description: "This is a description of Sample Product 2.",
+                    image: "path/to/sample-image2.jpg",
+                    price: 50000,
+                    reviews: [
+                        { rating: 3, text: "Good, but could be better." }
+                    ]
+                }
+            ];
+
+            // Save data to localStorage
+            localStorage.setItem('products', JSON.stringify(products));
+
+            // Set flag that data has been initialized
+            localStorage.setItem('initialized', 'true');
+
+            // Redirect to the main page
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
